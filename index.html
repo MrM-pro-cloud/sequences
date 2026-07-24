@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Séquences EM — Générateur de séquences d'éducation musicale</title>
+<meta name="description" content="Générateur de séquences d'éducation musicale pour le collège : scénario de séances, fiche élève et fiche professeur imprimables.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#2C4A6E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="app-header no-print">
+    <div>
+      <div class="eyebrow">Éducation musicale — Collège</div>
+      <h1>Séquences EM</h1>
+    </div>
+    <div class="hint">Générateur de séquences</div>
+  </header>
+
+  <div class="step-indicator no-print">
+    <div class="step active" id="step-1">1. Paramètres</div>
+    <div class="step" id="step-2">2. Séquence</div>
+    <div class="step" id="step-3">3. Fiches</div>
+  </div>
+
+  <!-- ============ ÉCRAN 1 : PARAMÈTRES ============ -->
+  <section id="screen-1">
+    <div class="panel">
+      <h2>Paramètres de la séquence</h2>
+      <form id="form-parametres">
+
+        <div class="field-row">
+          <div class="field">
+            <label for="niveau">Niveau</label>
+            <select id="niveau" required></select>
+          </div>
+          <div class="field">
+            <label for="notion">Notion / entrée du programme</label>
+            <select id="notion" required></select>
+          </div>
+        </div>
+
+        <details style="margin-bottom:1.2rem;">
+          <summary class="hint" style="cursor:pointer; font-weight:600;">Voir la progression annuelle suggérée pour ce niveau (8 séquences)</summary>
+          <div id="progression-annuelle" style="margin-top:0.6rem;"></div>
+        </details>
+
+        <div id="notion-preview" style="margin-bottom:1.2rem;"></div>
+
+        <div class="field">
+          <label>Nombre de séances</label>
+          <div class="radio-group">
+            <label class="radio-option selected">
+              <input type="radio" name="nb-seances" value="5" checked> 5 séances
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="nb-seances" value="4"> 4 séances
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="problematique-custom">Problématique (facultatif — sinon proposition automatique)</label>
+          <textarea id="problematique-custom" placeholder="Laissez vide pour reprendre une problématique suggérée, ou rédigez la vôtre."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="etablissement">Établissement (facultatif)</label>
+            <input type="text" id="etablissement" placeholder="Collège...">
+          </div>
+          <div class="field">
+            <label for="classe">Classe (facultatif)</label>
+            <input type="text" id="classe" placeholder="ex. 6e A">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Générer la séquence</button>
+        </div>
+      </form>
+    </div>
+    <p class="hint">Les œuvres et références suggérées sont des exemples issus de la bibliothèque <code>data.js</code> : relisez-les et adaptez-les à votre progression avant tout usage en classe ou en inspection.</p>
+  </section>
+
+  <!-- ============ ÉCRAN 2 : SÉQUENCE & ÉDITION ============ -->
+  <section id="screen-2" style="display:none;">
+    <div class="panel">
+      <h2 id="seq-titre"></h2>
+      <p class="hint" id="seq-etablissement"></p>
+
+      <div class="staff-divider"></div>
+
+      <h3>Problématique</h3>
+      <textarea id="problematique-live" style="min-height:3em;"></textarea>
+
+      <h3>Références réglementaires</h3>
+      <div id="seq-reference"></div>
+
+      <h3>Compétences travaillées</h3>
+      <ul class="attendus" id="seq-competences"></ul>
+
+      <h3>Attendus de fin de cycle mobilisés</h3>
+      <ul class="attendus" id="seq-attendus"></ul>
+    </div>
+
+    <div class="panel">
+      <h3>Vocabulaire — évolutif, séance par séance</h3>
+      <p class="hint">Retirez, modifiez ou ajoutez des mots. Chaque mot est affecté à une séance ; vous pouvez la changer à tout moment.</p>
+      <div id="vocab-editor"></div>
+      <button type="button" class="secondary" id="btn-add-vocab" style="margin-top:0.75rem;">+ Ajouter un mot</button>
+    </div>
+
+    <div class="panel">
+      <h3>Œuvres et supports</h3>
+      <p class="hint">Retirez les suggestions non pertinentes, ajoutez vos propres œuvres.</p>
+      <div id="oeuvres-editor"></div>
+      <button type="button" class="secondary" id="btn-add-oeuvre" style="margin-top:0.75rem;">+ Ajouter une œuvre</button>
+    </div>
+
+    <div class="panel">
+      <h3>Scénario des séances</h3>
+      <table class="seances">
+        <thead>
+          <tr><th>Séance</th><th>Objectif</th><th>Déroulé</th><th>Support</th><th>Trace écrite</th></tr>
+        </thead>
+        <tbody id="seq-seances-body"></tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="btn-retour-parametres">← Modifier les paramètres</button>
+      <button id="btn-voir-fiches">Générer les fiches →</button>
+    </div>
+  </section>
+
+  <!-- ============ ÉCRAN 3 : FICHES IMPRIMABLES ============ -->
+  <section id="screen-3" style="display:none;">
+    <div class="print-toolbar no-print">
+      <button class="secondary" id="btn-fiche-eleve">Fiche élève</button>
+      <button class="secondary" id="btn-fiche-prof">Fiche professeur</button>
+      <button class="secondary" id="btn-fiche-trace">Trace écrite</button>
+      <button id="btn-print">🖨 Imprimer / Exporter en PDF</button>
+      <button class="ghost" id="btn-retour-sequence">← Retour à la séquence</button>
+    </div>
+
+    <div class="fiche" id="fiche-eleve"></div>
+    <div class="fiche" id="fiche-prof"></div>
+    <div class="fiche" id="fiche-trace"></div>
+  </section>
+
+  <footer class="app-footer no-print">
+    Séquences EM · usage personnel · les contenus générés doivent être relus avant diffusion ou inspection
+  </footer>
+
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

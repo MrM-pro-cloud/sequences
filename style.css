@@ -1,0 +1,456 @@
+/* ==========================================================================
+   Séquences EM — feuille de style
+   Palette : papier + encre + un accent institutionnel unique
+   Signature : motif de portée (5 lignes) utilisé comme séparateur
+   ========================================================================== */
+
+:root {
+  --paper: #F6F5F1;
+  --paper-raised: #FFFFFF;
+  --ink: #20242A;
+  --ink-soft: #565C64;
+  --accent: #2C4A6E;
+  --accent-soft: #E4EAF0;
+  --validate: #A85C32;
+  --validate-soft: #F5E9E1;
+  --success: #4B7355;
+  --rule: #D9D6CC;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 0.4em;
+}
+
+h1 { font-size: 1.65rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.02rem; }
+
+p { margin: 0 0 0.75em; }
+
+a { color: var(--accent); }
+
+/* --- Motif de portée : séparateur de section --- */
+.staff-divider {
+  height: 20px;
+  margin: 1.5rem 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--rule) 0px, var(--rule) 1px,
+    transparent 1px, transparent 5px
+  );
+  background-size: 100% 20px;
+  background-repeat: no-repeat;
+  opacity: 0.9;
+}
+
+/* --- Structure générale de l'app --- */
+.app-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 4rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.app-header .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.step-indicator {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.25rem 0 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.step-indicator .step {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.step-indicator .step.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+/* --- Cartes / panneaux --- */
+.panel {
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* --- Formulaire --- */
+.field {
+  margin-bottom: 1.2rem;
+}
+
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+select, input[type="text"], input[type="number"], textarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  color: var(--ink);
+}
+
+textarea { resize: vertical; min-height: 4.5em; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+fieldset { border: none; padding: 0; margin: 0; }
+
+.radio-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.radio-option {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.radio-option input { margin-right: 0.4rem; }
+
+.radio-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* --- Boutons --- */
+button {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.3rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border-color: var(--rule);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: 0.03em;
+}
+
+.badge.warn {
+  background: var(--validate-soft);
+  color: var(--validate);
+}
+
+/* --- Tableaux éditables (vocabulaire / œuvres) --- */
+table.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+table.editor-table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.3rem 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+table.editor-table td {
+  padding: 0.3rem 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+table.editor-table input, table.editor-table select {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+button.small {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+/* --- Tableau séquence --- */
+table.seances {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+table.seances th, table.seances td {
+  border: 1px solid var(--rule);
+  padding: 0.55rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.seances th {
+  background: var(--accent-soft);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+
+ul.attendus, ul.vocab {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.ref-box {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 0.6rem 0.8rem;
+  color: var(--ink);
+}
+
+.warn-box {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--validate-soft);
+  border-left: 3px solid var(--validate);
+  padding: 0.6rem 0.8rem;
+  color: var(--ink);
+  margin-top: 0.6rem;
+}
+
+/* ==========================================================================
+   FICHES IMPRIMABLES (A4)
+   ========================================================================== */
+
+.fiche {
+  display: none;
+}
+
+.fiche.active {
+  display: block;
+  background: #fff;
+  color: #111;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 14mm 16mm;
+  border: 1px solid var(--rule);
+}
+
+.fiche-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #111;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.fiche-header .titre-fiche {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.fiche-header .type-fiche {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #111;
+}
+
+.identite-eleve {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.identite-eleve div {
+  border-bottom: 1px solid #999;
+  padding-bottom: 1.1rem;
+}
+
+.identite-eleve span {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #555;
+}
+
+.blank-line {
+  display: inline-block;
+  border-bottom: 1px solid #333;
+  min-width: 100%;
+  height: 1.3em;
+}
+
+.blank-lines {
+  border-bottom: 1px solid #999;
+  height: 1.6em;
+  margin-bottom: 0.35em;
+}
+
+.corrige {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.fiche h4 {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0.2rem;
+  margin: 1.1rem 0 0.5rem;
+}
+
+.fiche table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-bottom: 0.5rem;
+}
+
+.fiche table th, .fiche table td {
+  border: 1px solid #999;
+  padding: 0.4rem 0.5rem;
+  vertical-align: top;
+}
+
+.fiche table th {
+  background: #eee;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.print-toolbar {
+  max-width: 210mm;
+  margin: 0 auto 0.75rem;
+  display: flex;
+  gap: 0.6rem;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .fiche.active, .fiche.active * { visibility: visible; }
+  .fiche.active {
+    position: absolute;
+    left: 0; top: 0;
+    border: none;
+    padding: 10mm 14mm;
+    width: 100%;
+  }
+  .print-toolbar, .no-print { display: none !important; }
+  @page { size: A4; margin: 10mm; }
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+footer.app-footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+}
