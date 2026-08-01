@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/30328618/README.md)
 # Séquences EM — Générateur de séquences d'éducation musicale
 
 Application web statique (sans serveur, sans dépendance) pour générer des
