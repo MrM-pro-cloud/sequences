@@ -37,16 +37,28 @@
       <div class="panel-title"><span class="ico" aria-hidden="true">🎛️</span><h2>Paramètres de la séquence</h2></div>
       <form id="form-parametres">
 
+        <div class="field">
+          <span class="lbl" id="lbl-entree">Par où voulez-vous entrer ?</span>
+          <div class="entry-tabs" role="group" aria-labelledby="lbl-entree">
+            <button type="button" class="entry-tab active" data-entry="notion" aria-pressed="true"><span aria-hidden="true">📚</span> Une notion</button>
+            <button type="button" class="entry-tab" data-entry="problematique" aria-pressed="false"><span aria-hidden="true">❓</span> Une problématique</button>
+            <button type="button" class="entry-tab" data-entry="domaine" aria-pressed="false"><span aria-hidden="true">🧭</span> Un domaine</button>
+            <button type="button" class="entry-tab" data-entry="competence" aria-pressed="false"><span aria-hidden="true">💪</span> Une compétence</button>
+          </div>
+        </div>
+
         <div class="field-row">
           <div class="field">
             <label for="niveau">Niveau</label>
             <select id="niveau" required></select>
           </div>
-          <div class="field">
+          <div class="field" id="field-notion">
             <label for="notion">Notion / entrée du programme</label>
             <select id="notion" required></select>
           </div>
         </div>
+
+        <div id="entry-picker" class="entry-picker" aria-live="polite"></div>
 
         <details class="fold">
           <summary>Voir la progression annuelle suggérée pour ce niveau (8 séquences)</summary>
@@ -124,6 +136,8 @@
       <p class="hint" style="margin-top:.6rem">Retirez les suggestions non pertinentes, ajoutez vos propres œuvres.</p>
       <div id="oeuvres-editor"></div>
       <button type="button" class="secondary" id="btn-add-oeuvre" style="margin-top:1rem;">＋ Ajouter une œuvre</button>
+
+      <div class="suggest" id="suggest-box"></div>
     </div>
 
     <div class="panel soleil">
@@ -160,6 +174,7 @@
 </div>
 
 <script src="data.js"></script>
+<script src="oeuvres.js"></script>
 <script src="app.js"></script>
 <script>
 if ("serviceWorker" in navigator) {

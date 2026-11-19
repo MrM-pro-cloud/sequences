@@ -12,6 +12,10 @@ const state = {
   vocab: [],     // [{ mot, definition, seance }]
   oeuvres: [],   // [{ titre, auteur, note }]
   seances: [],
+  entree: "notion",
+  competence: null,   // index de la compétence mise en avant
+  suggestMode: "analyser",
+  autoPb: "",         // problématique posée automatiquement par le sélecteur
 };
 
 const el = (id) => document.getElementById(id);
@@ -26,6 +30,8 @@ function initApp() {
   });
 
   niveauSelect.addEventListener("change", onNiveauChange);
+  document.querySelectorAll(".entry-tab").forEach((b) => b.addEventListener("click", () => setEntree(b.dataset.entry)));
+  el("entry-picker").addEventListener("click", onPickerClick);
   el("notion").addEventListener("change", onNotionChange);
   el("form-parametres").addEventListener("submit", onGenerate);
 
@@ -47,6 +53,7 @@ function initApp() {
 
   el("btn-add-vocab").addEventListener("click", addVocabRow);
   el("btn-add-oeuvre").addEventListener("click", addOeuvreRow);
+  el("suggest-box").addEventListener("click", onSuggestClick);
   el("vocab-editor").addEventListener("click", onVocabEditorClick);
   el("vocab-editor").addEventListener("input", onVocabEditorInput);
   el("vocab-editor").addEventListener("change", onVocabEditorInput);
@@ -74,6 +81,9 @@ function onNiveauChange() {
   });
   renderProgressionAnnuelle(niveau);
   onNotionChange();
+  state.domaineFiltre = null;
+  state.competence = null;
+  renderEntryPicker();
 }
 
 function renderProgressionAnnuelle(niveau) {
@@ -96,10 +106,14 @@ function renderProgressionAnnuelle(niveau) {
 }
 
 function onNotionChange() {
+  const pbField = el("problematique-custom");
+  if (state.autoPb && pbField.value === state.autoPb) pbField.value = "";
+  state.autoPb = "";
   const niveau = el("niveau").value;
   const notionId = el("notion").value;
   const notion = getNotion(niveau, notionId);
   const preview = el("notion-preview");
+  highlightPicked();
   if (!notion) { preview.innerHTML = ""; return; }
   preview.innerHTML = `
     <div class="ref-box">${GABARITS[niveau].reference_programme}</div>
@@ -131,9 +145,11 @@ function onGenerate(e) {
   state.etablissement = el("etablissement").value.trim();
   state.classe = el("classe").value.trim();
   state.problematique = problematiqueChoisie;
+  if (state.entree !== "competence") state.competence = null;
 
+  state.suggestMode = "analyser";
   state.vocab = initVocabFromNotion(notion, nbSeances);
-  state.oeuvres = notion.oeuvres_suggerees.map((o) => ({ titre: o.titre, auteur: o.auteur, note: o.note || "" }));
+  state.oeuvres = notion.oeuvres_suggerees.map((o) => ({ titre: o.titre, auteur: o.auteur, note: o.note || "", usage: "analyser" }));
 
   rebuildSeances();
   renderSequence();
@@ -218,7 +234,7 @@ function renderVocabEditor() {
 // --- Édition des œuvres / supports -----------------------------------------
 
 function addOeuvreRow() {
-  state.oeuvres.push({ titre: "", auteur: "", note: "" });
+  state.oeuvres.push({ titre: "", auteur: "", note: "", usage: "analyser" });
   renderOeuvresEditor();
 }
 
@@ -228,6 +244,7 @@ function onOeuvresEditorClick(e) {
   const idx = parseInt(btn.dataset.index, 10);
   state.oeuvres.splice(idx, 1);
   renderOeuvresEditor();
+  renderSuggestions();
   rebuildSeances();
   renderSeancesTable();
 }
@@ -238,7 +255,7 @@ function onOeuvresEditorInput(e) {
   const idx = parseInt(row.dataset.index, 10);
   if (Number.isNaN(idx) || !state.oeuvres[idx]) return;
   const field = e.target.dataset.field;
-  if (["titre", "auteur", "note"].includes(field)) {
+  if (["titre", "auteur", "note", "usage"].includes(field)) {
     state.oeuvres[idx][field] = e.target.value;
   }
   rebuildSeances();
@@ -253,6 +270,11 @@ function renderOeuvresEditor() {
           <input type="text" data-field="titre" aria-label="Titre" value="${escapeAttr(o.titre)}" placeholder="Titre">
           <input type="text" data-field="auteur" aria-label="Auteur" value="${escapeAttr(o.auteur)}" placeholder="Auteur / interprète">
           <input type="text" data-field="note" aria-label="Note" value="${escapeAttr(o.note)}" placeholder="Note (facultatif)">
+          <select data-field="usage" aria-label="Usage">
+            <option value="analyser" ${o.usage === "analyser" ? "selected" : ""}>À analyser</option>
+            <option value="chanter" ${o.usage === "chanter" ? "selected" : ""}>À chanter</option>
+            <option value="ac" ${o.usage === "ac" ? "selected" : ""}>Les deux</option>
+          </select>
           <button type="button" class="ghost small" data-action="remove-oeuvre" data-index="${i}">Retirer</button>
         </div>
       `).join("")}
@@ -323,9 +345,14 @@ function derouleePourType(type, vocabSeance) {
 }
 
 function supportPourType(type) {
-  if (type === "pratique") return "Projet musical de la classe (chant / création en cours)";
-  const oeuvre = state.oeuvres.find((o) => o.titre.trim() !== "");
-  return oeuvre ? `${oeuvre.titre}${oeuvre.auteur ? " — " + oeuvre.auteur : ""}` : "Support à préciser";
+  const valides = state.oeuvres.filter((o) => o.titre.trim() !== "");
+  const label = (o) => `${o.titre}${o.auteur ? " — " + o.auteur : ""}`;
+  if (type === "pratique") {
+    const chant = valides.find((o) => o.usage === "chanter" || o.usage === "ac");
+    return chant ? `À chanter : ${label(chant)}` : "Projet musical de la classe (chant / création en cours)";
+  }
+  const oeuvre = valides.find((o) => o.usage !== "chanter");
+  return oeuvre ? label(oeuvre) : "Support à préciser";
 }
 
 function traceEcritePourType(type, vocabSeance) {
@@ -353,9 +380,10 @@ function renderSequence() {
   el("seq-etablissement").textContent = [state.etablissement, state.classe].filter(Boolean).join(" · ") || "—";
   el("problematique-live").value = state.problematique;
   el("seq-reference").innerHTML = `<div class="ref-box">${g.reference_programme}</div>`;
-  el("seq-competences").innerHTML = g.competences.map((c) => `<li>${c}</li>`).join("");
+  el("seq-competences").innerHTML = g.competences.map((c, i) => i === state.competence ? `<li class="focus">${c} <span class="badge warn">★ mise en avant</span></li>` : `<li>${c}</li>`).join("");
   el("seq-attendus").innerHTML = state.notion.attendus.map((a) => `<li>${a}</li>`).join("");
   renderSeancesTable();
+  renderSuggestions();
 }
 
 const TYPE_META = {
@@ -468,7 +496,7 @@ function renderFicheProf() {
   `).join("");
 
   const oeuvresList = s.oeuvres.filter((o) => o.titre.trim() !== "").map((o) =>
-    `<li>${o.titre}${o.auteur ? " — " + o.auteur : ""}${o.note ? ` <em>(${o.note})</em>` : ""}</li>`
+    `<li>${o.titre}${o.auteur ? " — " + o.auteur : ""} <strong>[${usageLabel(o.usage)}]</strong>${o.note ? ` <em>(${o.note})</em>` : ""}</li>`
   ).join("");
 
   el("fiche-prof").innerHTML = `
@@ -484,7 +512,7 @@ function renderFicheProf() {
     <p class="hint">${g.reference_programme}</p>
 
     <h4>Compétences travaillées</h4>
-    <ul class="attendus">${g.competences.map((c) => `<li>${c}</li>`).join("")}</ul>
+    <ul class="attendus">${g.competences.map((c, i) => `<li>${c}${i === state.competence ? " <strong>(compétence mise en avant)</strong>" : ""}</li>`).join("")}</ul>
 
     <h4>Attendus de fin de cycle mobilisés</h4>
     <ul class="attendus">${s.notion.attendus.map((a) => `<li>${a}</li>`).join("")}</ul>
@@ -537,7 +565,7 @@ function renderFicheTrace() {
   `).join("");
 
   const oeuvresList = s.oeuvres.filter((o) => o.titre.trim() !== "").map((o) =>
-    `<li>${o.titre}${o.auteur ? " — " + o.auteur : ""}</li>`
+    `<li>${o.titre}${o.auteur ? " — " + o.auteur : ""} <strong>[${usageLabel(o.usage)}]</strong></li>`
   ).join("");
 
   el("fiche-trace").innerHTML = `
@@ -576,6 +604,186 @@ function showStep(n) {
     el(`step-${i}`).classList.toggle("done", i < n);
   });
   window.scrollTo(0, 0);
+}
+
+
+// --- Points d'entrée : notion, problématique, domaine, compétence -------------
+
+const COMPETENCE_MOTS = [
+  /chant|interpr|reproduire|r[ée]aliser|projet|jouer|pratique|vocal/i,
+  /[ée]cout|identifier|rep[ée]r|compar|reconna|situer|culture|d[ée]crire/i,
+  /cr[ée]|imagin|explor|inventer|improvis|compos|produire/i,
+  /[ée]chang|argument|d[ée]bat|commenter|justifier|partager|exprimer|vocabulaire/i,
+];
+
+function notionTexte(n) {
+  return [n.titre, n.domaine, ...n.attendus].join(" ");
+}
+
+function notionCorrespondCompetence(n, idx) {
+  return COMPETENCE_MOTS[idx] ? COMPETENCE_MOTS[idx].test(notionTexte(n)) : false;
+}
+
+function domainesDuNiveau(niveau) {
+  const set = new Set();
+  GABARITS[niveau].notions.forEach((n) => n.domaine.split("/").forEach((d) => set.add(d.trim())));
+  return [...set];
+}
+
+function setEntree(mode) {
+  state.entree = mode;
+  document.querySelectorAll(".entry-tab").forEach((b) => {
+    const on = b.dataset.entry === mode;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  el("field-notion").style.display = mode === "notion" ? "" : "none";
+  if (mode !== "competence") state.competence = null;
+  renderEntryPicker();
+}
+
+function selectNotion(id, problematique) {
+  el("notion").value = id;
+  onNotionChange();
+  if (problematique) {
+    el("problematique-custom").value = problematique;
+    state.autoPb = problematique;
+  }
+  el("notion-preview").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function notionCard(n, extra) {
+  return `<button type="button" class="pick" data-pick="notion" data-notion="${n.id}">
+    <strong>${n.titre}</strong>
+    <span class="meta">${n.periode} · ${n.domaine}${extra || ""}</span>
+  </button>`;
+}
+
+function renderEntryPicker() {
+  const box = el("entry-picker");
+  const niveau = el("niveau").value;
+  if (!niveau || !GABARITS[niveau] || state.entree === "notion") { box.innerHTML = ""; return; }
+  const g = GABARITS[niveau];
+  const notions = [...g.notions].sort((a, b) => a.ordre - b.ordre);
+
+  if (state.entree === "problematique") {
+    const items = notions.flatMap((n) => n.problematiques_exemples.map((p, i) => ({ n, p, i })));
+    box.innerHTML = `
+      <p class="entry-note">Choisissez la question qui vous donne envie de démarrer : la notion associée est sélectionnée pour vous.</p>
+      <div class="pick-list">${items.map(({ n, p, i }) => `
+        <button type="button" class="pick" data-pick="problematique" data-notion="${n.id}" data-pb="${i}">
+          <strong>${p}</strong>
+          <span class="meta">${n.titre} · ${n.domaine}</span>
+        </button>`).join("")}
+      </div>`;
+  } else if (state.entree === "domaine") {
+    const doms = domainesDuNiveau(niveau);
+    const f = state.domaineFiltre;
+    const liste = f ? notions.filter((n) => n.domaine.split("/").map((d) => d.trim()).includes(f)) : [];
+    box.innerHTML = `
+      <p class="entry-note">Choisissez un des domaines du programme, puis la notion qui s'y rattache.</p>
+      <div class="chip-row">${doms.map((d) => `<button type="button" class="chip ${d === f ? "active" : ""}" data-pick="domaine" data-domaine="${d}">${d}</button>`).join("")}</div>
+      ${f ? `<div class="pick-list">${liste.map((n) => notionCard(n)).join("")}</div>` : ""}`;
+  } else if (state.entree === "competence") {
+    const c = state.competence;
+    const triees = c === null ? [] : [...notions].sort((a, b) =>
+      Number(notionCorrespondCompetence(b, c)) - Number(notionCorrespondCompetence(a, c)) || a.ordre - b.ordre);
+    box.innerHTML = `
+      <p class="entry-note">Choisissez la compétence à mettre en avant. Les notions dont les attendus la mobilisent le plus sont proposées en premier (★) : c'est une suggestion à valider, les quatre compétences restent travaillées dans toute séquence.</p>
+      <div class="chip-row">${g.competences.map((comp, i) => `<button type="button" class="chip ${i === c ? "active" : ""}" data-pick="competence" data-comp="${i}">${comp}</button>`).join("")}</div>
+      ${c !== null ? `<div class="pick-list">${triees.map((n) => notionCard(n, notionCorrespondCompetence(n, c) ? ' · <span class="star">★ suggérée</span>' : "")).join("")}</div>` : ""}`;
+  }
+  highlightPicked();
+}
+
+function onPickerClick(e) {
+  const b = e.target.closest("[data-pick]");
+  if (!b) return;
+  const kind = b.dataset.pick;
+  const niveau = el("niveau").value;
+  if (kind === "domaine") {
+    state.domaineFiltre = b.dataset.domaine;
+    renderEntryPicker();
+  } else if (kind === "competence") {
+    state.competence = parseInt(b.dataset.comp, 10);
+    renderEntryPicker();
+  } else if (kind === "problematique") {
+    const n = getNotion(niveau, b.dataset.notion);
+    selectNotion(n.id, n.problematiques_exemples[parseInt(b.dataset.pb, 10)]);
+  } else if (kind === "notion") {
+    selectNotion(b.dataset.notion);
+  }
+}
+
+function highlightPicked() {
+  const id = el("notion").value;
+  const pb = el("problematique-custom").value;
+  document.querySelectorAll("#entry-picker button.pick").forEach((b) => {
+    let on = b.dataset.notion === id;
+    if (b.dataset.pick === "problematique") {
+      const n = getNotion(el("niveau").value, b.dataset.notion);
+      on = on && n && n.problematiques_exemples[parseInt(b.dataset.pb, 10)] === pb;
+    }
+    b.classList.toggle("selected", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+
+// --- Suggestions d'œuvres : à analyser / à chanter --------------------------------
+
+function usageLabel(u) {
+  return u === "chanter" ? "à chanter" : u === "ac" ? "à analyser et à chanter" : "à analyser";
+}
+
+function renderSuggestions() {
+  const box = el("suggest-box");
+  if (!state.notion || typeof BANQUE_OEUVRES === "undefined") { box.innerHTML = ""; return; }
+  const cycle = state.niveau === "6e" ? 3 : 4;
+  const doms = state.notion.domaine.split("/").map((d) => d.trim());
+  const mode = state.suggestMode;
+  const lettre = mode === "chanter" ? "c" : "a";
+  const dejaAjoutees = new Set(state.oeuvres.map((o) => o.titre.trim().toLowerCase()));
+  const liste = BANQUE_OEUVRES
+    .filter((o) => o.cycles.includes(cycle) && o.u.includes(lettre))
+    .map((o) => ({ o, score: o.d.filter((d) => doms.includes(d)).length }))
+    .filter((x) => x.score > 0)
+    .sort((x, y) => y.score - x.score);
+
+  box.innerHTML = `
+    <h4>💡 Suggestions pour « ${state.notion.titre} »</h4>
+    <p class="hint">Choisies selon le domaine (${doms.join(", ")}) et le niveau. Écoutez chaque œuvre avant de la retenir : titres et références sont à vérifier.</p>
+    <div class="chip-row">
+      <button type="button" class="chip ${mode === "analyser" ? "active" : ""}" data-sugg-mode="analyser">🎧 À analyser</button>
+      <button type="button" class="chip ${mode === "chanter" ? "active" : ""}" data-sugg-mode="chanter">🎤 À chanter</button>
+    </div>
+    ${liste.length ? `<div class="suggest-list">${liste.map(({ o }) => {
+      const ajoutee = dejaAjoutees.has(o.t.toLowerCase());
+      return `<div class="sugg ${ajoutee ? "added" : ""}">
+        <strong>${o.t}</strong>
+        <span class="meta">${o.a}</span>
+        <p>${o.n}</p>
+        <button type="button" class="small ${ajoutee ? "" : "secondary"}" data-sugg-add="${BANQUE_OEUVRES.indexOf(o)}" ${ajoutee ? "disabled" : ""}>${ajoutee ? "✓ Ajoutée" : "＋ Ajouter"}</button>
+      </div>`;
+    }).join("")}</div>` : `<p class="hint">Aucune suggestion pour ce domaine et ce niveau : ajoutez vos propres œuvres ci-dessus.</p>`}
+  `;
+}
+
+function onSuggestClick(e) {
+  const m = e.target.closest("[data-sugg-mode]");
+  if (m) { state.suggestMode = m.dataset.suggMode; renderSuggestions(); return; }
+  const add = e.target.closest("[data-sugg-add]");
+  if (!add) return;
+  const o = BANQUE_OEUVRES[parseInt(add.dataset.suggAdd, 10)];
+  if (!o) return;
+  state.oeuvres.push({
+    titre: o.t, auteur: o.a, note: o.n,
+    usage: o.u === "ac" ? "ac" : (state.suggestMode === "chanter" ? "chanter" : "analyser"),
+  });
+  renderOeuvresEditor();
+  rebuildSeances();
+  renderSeancesTable();
+  renderSuggestions();
 }
 
 document.addEventListener("DOMContentLoaded", initApp);

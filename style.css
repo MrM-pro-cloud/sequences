@@ -381,7 +381,7 @@ table.editor-table td { padding: .45rem .5rem; border-bottom: 1px solid var(--li
   border-radius: var(--r-md);
   padding: .7rem;
 }
-.edit-row.oeuvre { grid-template-columns: 1.3fr 1fr 1fr auto; background: var(--lagon-soft); }
+.edit-row.oeuvre { grid-template-columns: 1.3fr 1fr 1fr 8.5rem auto; background: var(--lagon-soft); }
 .edit-row input, .edit-row select { min-height: 2.8rem; border-color: transparent; }
 .edit-row input:focus, .edit-row select:focus { border-color: var(--violet); }
 .edit-row button.small { background: #fff; color: var(--ciel-dark); border-color: var(--ciel); box-shadow: 0 3px 0 var(--ciel); }
@@ -494,6 +494,68 @@ table.editor-table td { padding: .45rem .5rem; border-bottom: 1px solid var(--li
 .fiche table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: .5rem; }
 .fiche table th, .fiche table td { border: 1px solid #999; padding: .45rem .55rem; vertical-align: top; }
 .fiche table th { background: #EEF; font-size: .8rem; }
+
+
+/* --- Points d'entrée : notion / problématique / domaine / compétence ---- */
+.entry-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; }
+button.entry-tab {
+  display: flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 3.4rem; padding: .5rem .6rem;
+  font-size: 1rem; text-align: center; line-height: 1.2;
+  background: #fff; color: var(--violet);
+  border: 3px solid var(--line); box-shadow: 0 4px 0 var(--line);
+  border-radius: var(--r-md);
+}
+button.entry-tab:hover { box-shadow: 0 6px 0 var(--line); }
+button.entry-tab.active {
+  background: var(--violet); color: #fff;
+  border-color: #3B1FA0; box-shadow: 0 4px 0 #3B1FA0;
+}
+.entry-picker { margin-bottom: 1.3rem; }
+.entry-picker:empty { display: none; }
+.chip-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .9rem; }
+button.chip {
+  min-height: 2.6rem; padding: .35rem 1rem; font-size: .95rem;
+  background: #fff; color: var(--ink);
+  border: 3px solid var(--line); box-shadow: 0 3px 0 var(--line);
+}
+button.chip.active { background: var(--soleil); border-color: #C98F00; box-shadow: 0 3px 0 #C98F00; }
+.pick-list { display: grid; gap: .6rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+button.pick {
+  text-align: left; font-family: var(--font-body); font-weight: 400; font-size: .98rem;
+  min-height: 0; padding: .7rem .9rem; border-radius: var(--r-md);
+  background: #fff; color: var(--ink);
+  border: 3px solid var(--line); box-shadow: 0 3px 0 var(--line);
+}
+button.pick:hover { border-color: var(--violet); box-shadow: 0 5px 0 var(--violet); }
+button.pick.selected { background: var(--violet-soft); border-color: var(--violet); box-shadow: 0 3px 0 var(--violet); }
+button.pick strong { display: block; font-family: var(--font-display); font-weight: 800; }
+button.pick .meta { display: block; margin-top: .3rem; font-size: .85rem; color: var(--ink-soft); }
+button.pick .star { color: #7A4B00; font-weight: 700; }
+.entry-note { font-size: .9rem; color: var(--ink-soft); margin: 0 0 .7rem; }
+li.focus { background: var(--soleil-soft); border-radius: 8px; padding-right: .5rem; }
+@media (max-width: 680px) {
+  .entry-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pick-list { grid-template-columns: 1fr; }
+}
+
+/* --- Suggestions d'œuvres --------------------------------------------- */
+.suggest { margin-top: 1.6rem; padding-top: 1.2rem; border-top: 3px dotted var(--line); }
+.suggest:empty { display: none; }
+.suggest h4 { margin: 0 0 .3rem; font-family: var(--font-display); font-size: 1.15rem; }
+.suggest-list { display: grid; gap: .6rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sugg {
+  display: flex; flex-direction: column; gap: .35rem;
+  background: #fff; border: 3px solid var(--line); border-radius: var(--r-md);
+  padding: .7rem .9rem;
+}
+.sugg strong { font-family: var(--font-display); font-weight: 800; }
+.sugg .meta { font-size: .88rem; color: var(--ink-soft); }
+.sugg p { margin: 0; font-size: .92rem; }
+.sugg button { align-self: flex-start; margin-top: .2rem; }
+.sugg.added { background: var(--canne-soft); border-color: var(--canne); }
+.sugg.added button { background: var(--canne-soft); color: var(--canne-dark); border-color: var(--canne); box-shadow: none; cursor: default; }
+@media (max-width: 680px) { .suggest-list { grid-template-columns: 1fr; } }
 
 /* --- Pied de page -------------------------------------------------------- */
 footer.app-footer {
