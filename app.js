@@ -182,7 +182,7 @@ function onVocabEditorClick(e) {
 }
 
 function onVocabEditorInput(e) {
-  const row = e.target.closest("tr");
+  const row = e.target.closest(".edit-row");
   if (!row) return;
   const idx = parseInt(row.dataset.index, 10);
   if (Number.isNaN(idx) || !state.vocab[idx]) return;
@@ -200,23 +200,18 @@ function renderVocabEditor() {
   const nb = state.nbSeances;
   const options = Array.from({ length: nb }, (_, i) => i + 1);
   el("vocab-editor").innerHTML = `
-    <table class="editor-table">
-      <thead><tr><th>Mot</th><th>Définition proposée</th><th>Séance</th><th></th></tr></thead>
-      <tbody>
-        ${state.vocab.map((v, i) => `
-          <tr data-index="${i}">
-            <td><input type="text" data-field="mot" value="${escapeAttr(v.mot)}" placeholder="mot"></td>
-            <td><input type="text" data-field="definition" value="${escapeAttr(v.definition)}" placeholder="définition (facultatif)"></td>
-            <td>
-              <select data-field="seance">
-                ${options.map((n) => `<option value="${n}" ${v.seance === n ? "selected" : ""}>Séance ${n}</option>`).join("")}
-              </select>
-            </td>
-            <td><button type="button" class="ghost small" data-action="remove-vocab" data-index="${i}">Retirer</button></td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
+    <div class="edit-list" style="margin-top:.8rem;">
+      ${state.vocab.map((v, i) => `
+        <div class="edit-row" data-index="${i}">
+          <input type="text" data-field="mot" aria-label="Mot" value="${escapeAttr(v.mot)}" placeholder="Mot">
+          <input type="text" data-field="definition" aria-label="Définition" value="${escapeAttr(v.definition)}" placeholder="Définition (facultatif)">
+          <select data-field="seance" aria-label="Séance">
+            ${options.map((n) => `<option value="${n}" ${v.seance === n ? "selected" : ""}>Séance ${n}</option>`).join("")}
+          </select>
+          <button type="button" class="ghost small" data-action="remove-vocab" data-index="${i}">Retirer</button>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -238,7 +233,7 @@ function onOeuvresEditorClick(e) {
 }
 
 function onOeuvresEditorInput(e) {
-  const row = e.target.closest("tr");
+  const row = e.target.closest(".edit-row");
   if (!row) return;
   const idx = parseInt(row.dataset.index, 10);
   if (Number.isNaN(idx) || !state.oeuvres[idx]) return;
@@ -252,19 +247,16 @@ function onOeuvresEditorInput(e) {
 
 function renderOeuvresEditor() {
   el("oeuvres-editor").innerHTML = `
-    <table class="editor-table">
-      <thead><tr><th>Titre</th><th>Auteur / interprète</th><th>Note</th><th></th></tr></thead>
-      <tbody>
-        ${state.oeuvres.map((o, i) => `
-          <tr data-index="${i}">
-            <td><input type="text" data-field="titre" value="${escapeAttr(o.titre)}" placeholder="titre"></td>
-            <td><input type="text" data-field="auteur" value="${escapeAttr(o.auteur)}" placeholder="auteur"></td>
-            <td><input type="text" data-field="note" value="${escapeAttr(o.note)}" placeholder="note (facultatif)"></td>
-            <td><button type="button" class="ghost small" data-action="remove-oeuvre" data-index="${i}">Retirer</button></td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
+    <div class="edit-list" style="margin-top:.8rem;">
+      ${state.oeuvres.map((o, i) => `
+        <div class="edit-row oeuvre" data-index="${i}">
+          <input type="text" data-field="titre" aria-label="Titre" value="${escapeAttr(o.titre)}" placeholder="Titre">
+          <input type="text" data-field="auteur" aria-label="Auteur" value="${escapeAttr(o.auteur)}" placeholder="Auteur / interprète">
+          <input type="text" data-field="note" aria-label="Note" value="${escapeAttr(o.note)}" placeholder="Note (facultatif)">
+          <button type="button" class="ghost small" data-action="remove-oeuvre" data-index="${i}">Retirer</button>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -366,17 +358,33 @@ function renderSequence() {
   renderSeancesTable();
 }
 
+const TYPE_META = {
+  decouverte:        { icone: "🔎", label: "Découverte" },
+  ecoute:            { icone: "🎧", label: "Écoute" },
+  approfondissement: { icone: "🧩", label: "Approfondissement" },
+  pratique:          { icone: "🎤", label: "Pratique" },
+  bilan:             { icone: "✅", label: "Bilan" },
+};
+
 function renderSeancesTable() {
-  const rows = state.seances.map((s) => `
-    <tr>
-      <td><strong>Séance ${s.numero}</strong><br>${s.titre}</td>
-      <td>${s.objectif}</td>
-      <td>${s.deroule}</td>
-      <td>${s.support}</td>
-      <td>${s.traceEcrite}</td>
-    </tr>
-  `).join("");
-  el("seq-seances-body").innerHTML = rows;
+  el("seq-seances-body").innerHTML = state.seances.map((s) => {
+    const m = TYPE_META[s.type] || { icone: "🎵", label: "" };
+    return `
+    <article class="seance ${s.type}">
+      <div class="num"><span>Séance</span><b>${s.numero}</b></div>
+      <div class="body">
+        <h4>${m.icone} ${s.titre} <span class="tag">${m.label}</span></h4>
+        <dl>
+          <div><dt>Objectif</dt><dd>${s.objectif}</dd></div>
+          <div><dt>Déroulé</dt><dd>${s.deroule}</dd></div>
+          <div class="grid2">
+            <div class="box"><dt>Support</dt><dd>${s.support}</dd></div>
+            <div class="box"><dt>Trace écrite</dt><dd>${s.traceEcrite}</dd></div>
+          </div>
+        </dl>
+      </div>
+    </article>`;
+  }).join("");
 }
 
 // --- Rendu écran 3 : fiches ---------------------------------------------------
@@ -557,6 +565,7 @@ function switchFiche(which) {
   el(`fiche-${which}`).classList.add("active");
   ["eleve", "prof", "trace"].forEach((k) => {
     el(`btn-fiche-${k}`).classList.toggle("secondary", k !== which);
+    el(`btn-fiche-${k}`).classList.toggle("tab-active", k === which);
   });
 }
 
@@ -564,6 +573,7 @@ function showStep(n) {
   [1, 2, 3].forEach((i) => {
     el(`screen-${i}`).style.display = i === n ? "block" : "none";
     el(`step-${i}`).classList.toggle("active", i === n);
+    el(`step-${i}`).classList.toggle("done", i < n);
   });
   window.scrollTo(0, 0);
 }
