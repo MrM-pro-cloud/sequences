@@ -1,4 +1,4 @@
-const CACHE_NAME = "sequences-em-v3";
+const CACHE_NAME = "sequences-em-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,8 @@ const ASSETS = [
   "./app.js",
   "./data.js",
   "./oeuvres.js",
+  "./mindmap.js",
+  "./export-docx.js",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png"

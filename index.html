@@ -154,17 +154,28 @@
 
   <!-- ============ ÉCRAN 3 : FICHES IMPRIMABLES ============ -->
   <section id="screen-3" style="display:none;">
+    <div class="print-toolbar no-print doc-picker">
+      <label for="fiche-select">Document à afficher</label>
+      <select id="fiche-select">
+        <option value="eleve">🎒 Fiche élève</option>
+        <option value="prof">🧑‍🏫 Fiche professeur</option>
+        <option value="trace">✏️ Trace écrite</option>
+        <option value="carte">🧠 Carte mentale</option>
+      </select>
+    </div>
     <div class="print-toolbar no-print">
-      <button class="secondary" id="btn-fiche-eleve">🎒 Fiche élève</button>
-      <button class="secondary" id="btn-fiche-prof">🧑‍🏫 Fiche professeur</button>
-      <button class="secondary" id="btn-fiche-trace">✏️ Trace écrite</button>
       <button class="go" id="btn-print">🖨️ Imprimer / PDF</button>
+      <button id="btn-export-docx">📝 Cette fiche (.docx)</button>
+      <button id="btn-export-all">📚 Tout en un fichier (.docx)</button>
+      <button class="secondary" id="btn-export-png" style="display:none;">🖼️ Carte en image (.png)</button>
       <button class="ghost" id="btn-retour-sequence">← Retour</button>
     </div>
+    <p class="hint no-print export-note" id="export-status" role="status">Les fichiers .docx s'ouvrent dans Pages (Fichier › Ouvrir), Word, LibreOffice et Google Docs.</p>
 
     <div class="fiche" id="fiche-eleve"></div>
     <div class="fiche" id="fiche-prof"></div>
     <div class="fiche" id="fiche-trace"></div>
+    <div class="fiche" id="fiche-carte"></div>
   </section>
 
   <footer class="app-footer no-print">
@@ -175,6 +186,8 @@
 
 <script src="data.js"></script>
 <script src="oeuvres.js"></script>
+<script src="mindmap.js"></script>
+<script src="export-docx.js"></script>
 <script src="app.js"></script>
 <script>
 if ("serviceWorker" in navigator) {

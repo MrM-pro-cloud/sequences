@@ -557,6 +557,21 @@ li.focus { background: var(--soleil-soft); border-radius: 8px; padding-right: .5
 .sugg.added button { background: var(--canne-soft); color: var(--canne-dark); border-color: var(--canne); box-shadow: none; cursor: default; }
 @media (max-width: 680px) { .suggest-list { grid-template-columns: 1fr; } }
 
+/* --- Carte mentale + export ------------------------------------------- */
+#fiche-carte.active { max-width: 297mm; padding: 8mm 10mm; }
+#fiche-carte .mindmap svg { display: block; width: 100%; height: auto; }
+#fiche-carte .mindmap { overflow-x: auto; }
+.export-note { max-width: 210mm; margin: -.4rem auto 1rem; }
+.print-toolbar { max-width: 297mm; }
+
+/* --- Sélecteur de document ---------------------------------------------- */
+.doc-picker { align-items: center; }
+.doc-picker label { font-weight: 700; }
+.doc-picker select {
+  width: auto; min-width: 15rem; flex: 1 1 15rem; max-width: 24rem;
+  font-weight: 700; border-color: var(--violet); color: var(--violet);
+}
+
 /* --- Pied de page -------------------------------------------------------- */
 footer.app-footer {
   margin-top: 3rem; padding-top: 1rem;
@@ -600,9 +615,9 @@ footer.app-footer {
     filter: grayscale(1);
   }
   .fiche-header .type-fiche { background: #fff !important; color: #000 !important; border: 2px solid #000; }
+  #fiche-carte.active { padding: 0; }
   .fiche h4 { background: #fff !important; color: #000; border-left: 4px solid #000 !important; border-bottom: 1px solid #000; border-radius: 0; }
   .fiche table th { background: #fff !important; }
   .corrige { color: #000; }
   .print-toolbar, .no-print { display: none !important; }
-  @page { size: A4; margin: 10mm; }
 }

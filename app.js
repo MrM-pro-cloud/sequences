@@ -46,9 +46,10 @@ function initApp() {
   el("btn-voir-fiches").addEventListener("click", () => { renderFiches(); showStep(3); });
   el("btn-retour-sequence").addEventListener("click", () => showStep(2));
 
-  el("btn-fiche-eleve").addEventListener("click", () => switchFiche("eleve"));
-  el("btn-fiche-prof").addEventListener("click", () => switchFiche("prof"));
-  el("btn-fiche-trace").addEventListener("click", () => switchFiche("trace"));
+  el("fiche-select").addEventListener("change", (e) => switchFiche(e.target.value));
+  el("btn-export-docx").addEventListener("click", () => exporterDocx(state.ficheActive || "eleve"));
+  el("btn-export-all").addEventListener("click", () => exporterDocx("tout"));
+  el("btn-export-png").addEventListener("click", exporterCartePng);
   el("btn-print").addEventListener("click", () => window.print());
 
   el("btn-add-vocab").addEventListener("click", addVocabRow);
@@ -422,6 +423,7 @@ function renderFiches() {
   renderFicheEleve();
   renderFicheProf();
   renderFicheTrace();
+  renderCarte();
   switchFiche("eleve");
 }
 
@@ -591,10 +593,13 @@ function renderFicheTrace() {
 function switchFiche(which) {
   document.querySelectorAll(".fiche").forEach((f) => f.classList.remove("active"));
   el(`fiche-${which}`).classList.add("active");
-  ["eleve", "prof", "trace"].forEach((k) => {
-    el(`btn-fiche-${k}`).classList.toggle("secondary", k !== which);
-    el(`btn-fiche-${k}`).classList.toggle("tab-active", k === which);
-  });
+  state.ficheActive = which;
+  // La carte mentale s'imprime en paysage ; les autres fiches en portrait.
+  let po = document.getElementById("page-orient");
+  if (!po) { po = document.createElement("style"); po.id = "page-orient"; document.head.appendChild(po); }
+  po.textContent = which === "carte" ? "@page { size: A4 landscape; margin: 8mm; }" : "@page { size: A4; margin: 10mm; }";
+  el("btn-export-png").style.display = which === "carte" ? "" : "none";
+  el("fiche-select").value = which;
 }
 
 function showStep(n) {
@@ -784,6 +789,64 @@ function onSuggestClick(e) {
   rebuildSeances();
   renderSeancesTable();
   renderSuggestions();
+}
+
+
+// --- Carte mentale et export Word ------------------------------------------------
+
+function renderCarte() {
+  const m = buildMindMapSVG(state);
+  state.carte = m;
+  el("fiche-carte").innerHTML = `
+    <div class="mindmap">${m.svg}</div>`;
+}
+
+function statutExport(msg) {
+  const s = el("export-status");
+  if (s) s.textContent = msg;
+}
+
+const FICHES_DOCX = {
+  eleve: { id: "fiche-eleve", nom: "fiche-eleve", landscape: false },
+  prof:  { id: "fiche-prof",  nom: "fiche-professeur", landscape: true },
+  trace: { id: "fiche-trace", nom: "trace-ecrite", landscape: false },
+};
+
+async function exporterDocx(which) {
+  try {
+    statutExport("Préparation du fichier…");
+    rebuildSeances();
+    const ordre = which === "tout" ? ["eleve", "prof", "trace", "carte"] : [which];
+    const sections = [];
+    for (const k of ordre) {
+      if (k === "carte") {
+        const m = buildMindMapSVG(state);
+        const png = await svgToPngBytes(m.svg, m.width, m.height, 2);
+        sections.push({ type: "image", png, width: m.width, height: m.height, landscape: true, titre: "Carte mentale — " + state.notion.titre });
+      } else {
+        sections.push({ type: "fiche", el: el(FICHES_DOCX[k].id), landscape: FICHES_DOCX[k].landscape });
+      }
+    }
+    const suffixe = which === "tout" ? "fiches-completes" : (which === "carte" ? "carte-mentale" : FICHES_DOCX[which].nom);
+    const nom = `${slugFichier(state.notion.titre)}_${state.niveau}_${suffixe}.docx`;
+    await telecharger(buildDocx(sections, state.notion.titre), nom);
+    statutExport(`Fichier « ${nom} » généré. Ouvrez-le dans Pages (Fichier › Ouvrir) ou Word. Si rien ne se télécharge, ouvrez l'application directement dans votre navigateur.`);
+  } catch (e) {
+    console.error(e);
+    statutExport("L'export a échoué : " + e.message);
+  }
+}
+
+async function exporterCartePng() {
+  try {
+    const m = state.carte || buildMindMapSVG(state);
+    const png = await svgToPngBytes(m.svg, m.width, m.height, 2);
+    await telecharger(new Blob([png], { type: "image/png" }), `${slugFichier(state.notion.titre)}_${state.niveau}_carte-mentale.png`);
+    statutExport("Image de la carte mentale générée.");
+  } catch (e) {
+    console.error(e);
+    statutExport("Impossible de créer l'image : " + e.message);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
