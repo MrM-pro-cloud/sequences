@@ -141,6 +141,12 @@ function blocks(el, f) {
 
 function listXml(ul, f) {
   let out = "";
+  if (ul.classList.contains("opts")) {          // cases à cocher : pas de puce
+    ul.querySelectorAll(":scope > li").forEach((li) => {
+      out += para(inlineRuns(li, f), { indent: 560, hanging: 0, after: 40 });
+    });
+    return out + para("", { after: 80 });
+  }
   ul.querySelectorAll(":scope > li").forEach((li) => {
     out += para(runXml("•\t", f) + inlineRuns(li, f), { indent: 360, hanging: 260, after: 60 });
   });

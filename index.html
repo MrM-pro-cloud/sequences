@@ -157,16 +157,26 @@
     <div class="print-toolbar no-print doc-picker">
       <label for="fiche-select">Document à afficher</label>
       <select id="fiche-select">
-        <option value="eleve">🎒 Fiche élève</option>
-        <option value="prof">🧑‍🏫 Fiche professeur</option>
-        <option value="trace">✏️ Trace écrite</option>
-        <option value="carte">🧠 Carte mentale</option>
+        <optgroup label="Fiches">
+          <option value="eleve">🎒 Fiche élève</option>
+          <option value="prof">🧑‍🏫 Fiche professeur</option>
+          <option value="trace">✏️ Trace écrite</option>
+          <option value="carte">🧠 Carte mentale</option>
+        </optgroup>
+        <optgroup label="Évaluations">
+          <option value="qcm">❓ QCM formatif — élève</option>
+          <option value="qcmc">✅ QCM formatif — corrigé</option>
+          <option value="somm">📋 Évaluation sommative — élève</option>
+          <option value="sommc">✅ Évaluation sommative — corrigé et barème</option>
+          <option value="comp">🎯 Évaluation par compétence</option>
+        </optgroup>
       </select>
     </div>
     <div class="print-toolbar no-print">
       <button class="go" id="btn-print">🖨️ Imprimer / PDF</button>
       <button id="btn-export-docx">📝 Cette fiche (.docx)</button>
-      <button id="btn-export-all">📚 Tout en un fichier (.docx)</button>
+      <button id="btn-export-all">📚 Toutes les fiches (.docx)</button>
+      <button id="btn-export-evals">🧾 Toutes les évaluations (.docx)</button>
       <button class="secondary" id="btn-export-png" style="display:none;">🖼️ Carte en image (.png)</button>
       <button class="ghost" id="btn-retour-sequence">← Retour</button>
     </div>
@@ -176,6 +186,11 @@
     <div class="fiche" id="fiche-prof"></div>
     <div class="fiche" id="fiche-trace"></div>
     <div class="fiche" id="fiche-carte"></div>
+    <div class="fiche" id="fiche-qcm"></div>
+    <div class="fiche" id="fiche-qcmc"></div>
+    <div class="fiche" id="fiche-somm"></div>
+    <div class="fiche" id="fiche-sommc"></div>
+    <div class="fiche" id="fiche-comp"></div>
   </section>
 
   <footer class="app-footer no-print">
@@ -187,6 +202,7 @@
 <script src="data.js"></script>
 <script src="oeuvres.js"></script>
 <script src="mindmap.js"></script>
+<script src="evaluations.js"></script>
 <script src="export-docx.js"></script>
 <script src="app.js"></script>
 <script>

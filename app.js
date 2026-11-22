@@ -49,6 +49,7 @@ function initApp() {
   el("fiche-select").addEventListener("change", (e) => switchFiche(e.target.value));
   el("btn-export-docx").addEventListener("click", () => exporterDocx(state.ficheActive || "eleve"));
   el("btn-export-all").addEventListener("click", () => exporterDocx("tout"));
+  el("btn-export-evals").addEventListener("click", () => exporterDocx("evals"));
   el("btn-export-png").addEventListener("click", exporterCartePng);
   el("btn-print").addEventListener("click", () => window.print());
 
@@ -424,6 +425,7 @@ function renderFiches() {
   renderFicheProf();
   renderFicheTrace();
   renderCarte();
+  renderEvaluations();
   switchFiche("eleve");
 }
 
@@ -810,13 +812,19 @@ const FICHES_DOCX = {
   eleve: { id: "fiche-eleve", nom: "fiche-eleve", landscape: false },
   prof:  { id: "fiche-prof",  nom: "fiche-professeur", landscape: true },
   trace: { id: "fiche-trace", nom: "trace-ecrite", landscape: false },
+  qcm:   { id: "fiche-qcm",   nom: "qcm-formatif", landscape: false },
+  qcmc:  { id: "fiche-qcmc",  nom: "qcm-formatif-corrige", landscape: false },
+  somm:  { id: "fiche-somm",  nom: "evaluation-sommative", landscape: false },
+  sommc: { id: "fiche-sommc", nom: "evaluation-sommative-corrige", landscape: false },
+  comp:  { id: "fiche-comp",  nom: "evaluation-par-competence", landscape: true },
 };
 
 async function exporterDocx(which) {
   try {
     statutExport("Préparation du fichier…");
     rebuildSeances();
-    const ordre = which === "tout" ? ["eleve", "prof", "trace", "carte"] : [which];
+    const ordre = which === "tout" ? ["eleve", "prof", "trace", "carte"]
+      : which === "evals" ? ["qcm", "qcmc", "somm", "sommc", "comp"] : [which];
     const sections = [];
     for (const k of ordre) {
       if (k === "carte") {
@@ -827,7 +835,7 @@ async function exporterDocx(which) {
         sections.push({ type: "fiche", el: el(FICHES_DOCX[k].id), landscape: FICHES_DOCX[k].landscape });
       }
     }
-    const suffixe = which === "tout" ? "fiches-completes" : (which === "carte" ? "carte-mentale" : FICHES_DOCX[which].nom);
+    const suffixe = which === "tout" ? "fiches-completes" : which === "evals" ? "evaluations" : (which === "carte" ? "carte-mentale" : FICHES_DOCX[which].nom);
     const nom = `${slugFichier(state.notion.titre)}_${state.niveau}_${suffixe}.docx`;
     await telecharger(buildDocx(sections, state.notion.titre), nom);
     statutExport(`Fichier « ${nom} » généré. Ouvrez-le dans Pages (Fichier › Ouvrir) ou Word. Si rien ne se télécharge, ouvrez l'application directement dans votre navigateur.`);

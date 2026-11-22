@@ -564,6 +564,17 @@ li.focus { background: var(--soleil-soft); border-radius: 8px; padding-right: .5
 .export-note { max-width: 210mm; margin: -.4rem auto 1rem; }
 .print-toolbar { max-width: 297mm; }
 
+/* --- Évaluations ----------------------------------------------------------- */
+#fiche-qcm.active, #fiche-qcmc.active { border-top-color: var(--soleil); }
+#fiche-somm.active, #fiche-sommc.active { border-top-color: var(--violet); }
+#fiche-comp.active { border-top-color: var(--canne); }
+#fiche-qcm h4, #fiche-qcmc h4 { background: var(--soleil-soft); border-color: var(--soleil); }
+#fiche-comp h4 { background: var(--canne-soft); border-color: var(--canne); }
+#fiche-qcm .type-fiche, #fiche-qcmc .type-fiche { background: var(--soleil); color: var(--ink); }
+#fiche-comp .type-fiche { background: var(--canne); }
+.fiche ul.opts { list-style: none; padding-left: .4rem; margin: .2rem 0 1rem; }
+.fiche ul.opts li { padding: .15rem 0; }
+
 /* --- Sélecteur de document ---------------------------------------------- */
 .doc-picker { align-items: center; }
 .doc-picker label { font-weight: 700; }
